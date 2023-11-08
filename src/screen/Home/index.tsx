@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from "reac
 import { FontAwesome } from "@expo/vector-icons";
 
 import axios from "axios";
+import { KEY_MEANING_CLOUD } from '@env';
 
 import { SCORE_TAG, Sentiment } from "../../component/Sentiment";
 
@@ -10,11 +11,26 @@ import { styles } from './styles';
 
 export function Home() {
     const [score, setScore] = useState<SCORE_TAG | null>(null);
+    const [menssage, setMenssage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
     async function handleSendMessage(){
         try {
             setIsLoading(true);
+
+            const formData = new FormData();
+            formData.append('key', KEY_MEANING_CLOUD);
+            formData.append('txt', menssage);
+            formData.append('lang', 'pt');
+
+            const response = await axios.post(
+                'https://api.meaningcloud.com/sentiment-2.1',
+                formData,
+                { headers: { 'Content-Type': 'multipart/form-data' } }
+            );
+
+            setScore(response.data.score_tag);
+
         } catch (error) {
             
         }
@@ -30,11 +46,14 @@ export function Home() {
                 <TextInput 
                     style={styles.input}
                     placeholder="Digite a sua mensagem..."
+                    multiline
+                    onChangeText={setMenssage}
                 />
                 <TouchableOpacity 
                     style={styles.button} 
                     activeOpacity={0.7}
                     disabled={isLoading}
+                    onPress={handleSendMessage}
                 >
                     {
                         isLoading 
